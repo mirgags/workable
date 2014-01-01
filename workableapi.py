@@ -7,11 +7,16 @@ import unicodedata
 
 #start the api work here
 
+curPath = os.getcwd()
+
+f = open('%s/workableapi.txt' % curPath, 'rb')
+apikey = f.readline().strip()
+f.close()
+
 jobcodes = []
 candidates = {}
 #url = "http://www.workable.com/spi/accounts/%s/jobs/%s" % (apikey, jobcode)
 url = "http://www.workable.com/spi/accounts/%s/jobs?phase=published" % apikey
-curPath = os.getcwd()
 
 req = urllib2.Request(url)
 resp = urllib2.urlopen(req)
@@ -34,25 +39,25 @@ for item in jobcodes:
 #for key in candidates:
 #    print key
 
-workablecsv = "job%^%name%^%email%^%resume"
+workablecsv = "job|name|email|resume"
 
 for jobtitle in candidates:
     for person in candidates[jobtitle]['candidates']:
-        workablecsv = workablecsv + "^^^" + jobtitle + "%^%" + unicodedata.normalize('NFKD', person['name']).encode('utf8', 'replace') + "%^%" + unicodedata.normalize('NFKD', person['email']).encode('utf8', 'replace') + "%^%" + unicodedata.normalize('NFKD', person['resume_url']).encode('utf8', 'replace'))
+        workablecsv = workablecsv + "^^^" + jobtitle + "|" + unicodedata.normalize('NFKD', person['name']).encode('utf8', 'replace') + "|" + unicodedata.normalize('NFKD', person['email']).encode('utf8', 'replace') + "|" + unicodedata.normalize('NFKD', person['resume_url']).encode('utf8', 'replace')
 #        print "************"
 #        print jobtitle + "," + str(person)
         for education in person['educations']:
             if education:
                 for key in education:
                     try:
-                        workablecsv = workablecsv + "%^%" + key + ": " + unicodedata.normalize('NFKD', education[key]).encode('utf8', 'replace')
+                        workablecsv = workablecsv + "|" + key + ": " + unicodedata.normalize('NFKD', education[key]).encode('utf8', 'replace')
                     except (TypeError, AttributeError, UnicodeDecodeError):
                         pass
         for experience in person['experieneces']:
             if experience:
                 for key in experience:
                     try:
-                        workablecsv = workablecsv + "%^%" + key + ": " + unicodedata.normalize('NFKD', experience[key]).encode('utf8', 'replace')
+                        workablecsv = workablecsv + "|" + key + ": " + unicodedata.normalize('NFKD', experience[key]).encode('utf8', 'replace')
                     except (TypeError, AttributeError, UnicodeDecodeError):
                         pass
 #        workablecsv = workablecsv + ", " + person['resume_url']
