@@ -1,3 +1,5 @@
 *.swp
 *.tmp
 *workableapi.txt
+*.xlsm
+*.csv
