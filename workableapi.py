@@ -39,7 +39,7 @@ for item in jobcodes:
 #for key in candidates:
 #    print key
 
-workablecsv = "job|name|email|resume"
+workablecsv = "sep=|job|name|email|resume"
 
 for jobtitle in candidates:
     for person in candidates[jobtitle]['candidates']:
