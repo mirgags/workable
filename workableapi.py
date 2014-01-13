@@ -4,6 +4,7 @@ import pprint
 import json
 import os
 import unicodedata
+import pickle
 
 #start the api work here
 
@@ -15,17 +16,21 @@ f.close()
 
 jobcodes = []
 candidates = {}
+jsonObjects = []
 #url = "http://www.workable.com/spi/accounts/%s/jobs/%s" % (apikey, jobcode)
 url = "http://www.workable.com/spi/accounts/%s/jobs?phase=published" % apikey
+urlList = [                                                                   "http://www.workable.com/spi/accounts/%s/jobs?phase=published" % apikey,   "http://www.workable.com/spi/accounts/%s/jobs?phase=archived" % apikey,   "http://www.workable.com/spi/accounts/%s/jobs?phase=closed" % apikey
+   ]
 
-req = urllib2.Request(url)
-resp = urllib2.urlopen(req)
-
-workabledict = ast.literal_eval(resp.read())
-#print workabledict
-
-for item in workabledict['jobs']:
-    jobcodes.append((item['title'], item['shortcode']))
+for url in urlList:
+    req = urllib2.Request(url)
+    resp = urllib2.urlopen(req)
+    
+    workabledict = ast.literal_eval(resp.read())
+    #print workabledict
+    
+    for item in workabledict['jobs']:
+        jobcodes.append((item['title'], item['shortcode']))
 
 #print jobcodes
 
@@ -40,12 +45,15 @@ for item in jobcodes:
 #    print key
 
 workablecsv = "sep=|job|name|email|resume"
+workableList = ['qualified', 'phone screen', 'assessments', 'interview',                   'presentation', 'offer', 'hired']
 
 for jobtitle in candidates:
     for person in candidates[jobtitle]['candidates']:
-        workablecsv = workablecsv + "^^^" + jobtitle + "|" + unicodedata.normalize('NFKD', person['name']).encode('utf8', 'replace') + "|" + unicodedata.normalize('NFKD', person['email']).encode('utf8', 'replace') + "|" + unicodedata.normalize('NFKD', person['resume_url']).encode('utf8', 'replace')
-#        print "************"
-#        print jobtitle + "," + str(person)
+#        if any(person['stage'] in l for l in workableList:
+        jsonObjects.append([jobtitle, person])
+        workablecsv = workablecsv + "^^^" + jobtitle + "|" + unicodedata.normalize('NFKD', person['name']).encode('utf8', 'replace') + "|" + unicodedata.normalize('NFKD', person['email']).encode('utf8', 'replace') + "|" + unicodedata.normalize('NFKD', person['resume_url']).encode('utf8', 'replace') + "|" + unicodedata.normalize('NFKD', person['stage']).encode('utf8', 'replace')
+        print "************"
+        print jobtitle + "," + str(person)
         for education in person['educations']:
             if education:
                 for key in education:
@@ -57,7 +65,7 @@ for jobtitle in candidates:
             if experience:
                 for key in experience:
                     try:
-                        workablecsv = workablecsv + "|" + key + ": " + unicodedata.normalize('NFKD', experience[key]).encode('utf8', 'replace')
+                        workablecsv = workablecsv + "|" + key + "|" + unicodedata.normalize('NFKD', experience[key]).encode('utf8', 'replace')
                     except (TypeError, AttributeError, UnicodeDecodeError):
                         pass
 #        workablecsv = workablecsv + ", " + person['resume_url']
@@ -72,3 +80,10 @@ f = open('%s/workable_candidates.csv' % curPath, 'wb')
 f.write(workablecsv)
 f.close()
 
+f = open('%s/workable_candidates.pkl' % curPath, 'wb')
+pickle.dump(json.dumps(jsonObjects), f)
+f.close
+
+f = open('%s/workable_candidates.txt' % curPath, 'wb')
+f.writelines(json.dumps(jsonObjects))
+f.close
